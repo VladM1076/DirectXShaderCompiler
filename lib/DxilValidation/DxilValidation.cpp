@@ -1184,7 +1184,7 @@ static void ValidateImmOperandsForMatVecOps(CallInst *CI, DXIL::OpCode OpCode,
   switch (OpCode) {
   case DXIL::OpCode::MatVecMulAdd: {
     llvm::Value *BiasInterpretation =
-        CI->getOperand(DXIL::OperandIndex::kMatVecMulAddBiasInterpretation);
+        CI->getOperand(DXIL::OperandIndex::kMatVecMulAddBiasInterpretationIdx);
     ConstantInt *BI = cast<ConstantInt>(BiasInterpretation);
     if (!BI) {
       ValCtx.EmitInstrFormatError(
@@ -1209,7 +1209,7 @@ static void ValidateImmOperandsForOuterProdAcc(CallInst *CI,
                                                ValidationContext &ValCtx) {
 
   llvm::Value *MatrixInterpretation =
-      CI->getOperand(DXIL::OperandIndex::kOuterProdAccMatrixInterpretation);
+      CI->getOperand(DXIL::OperandIndex::kOuterProdAccMatrixInterpretationIdx);
   ConstantInt *MI = cast<ConstantInt>(MatrixInterpretation);
   if (!MI) {
     ValCtx.EmitInstrFormatError(
@@ -1226,7 +1226,7 @@ static void ValidateImmOperandsForOuterProdAcc(CallInst *CI,
   }
 
   llvm::Value *MatrixLayout =
-      CI->getOperand(DXIL::OperandIndex::kOuterProdAccMatrixLayout);
+      CI->getOperand(DXIL::OperandIndex::kOuterProdAccMatrixLayoutIdx);
   if (!llvm::isa<llvm::Constant>(MatrixLayout)) {
     ValCtx.EmitInstrFormatError(
         CI, ValidationRule::InstrLinalgMatrixShapeParamsAreConst,
@@ -1246,7 +1246,7 @@ static void ValidateImmOperandsForOuterProdAcc(CallInst *CI,
              DXIL::LinalgMatrixLayout::OuterProductOptimal))});
 
   llvm::Value *MatrixStride =
-      CI->getOperand(DXIL::OperandIndex::kOuterProdAccMatrixStride);
+      CI->getOperand(DXIL::OperandIndex::kOuterProdAccMatrixStrideIdx);
   if (!llvm::isa<llvm::Constant>(MatrixStride)) {
     ValCtx.EmitInstrError(
         CI, ValidationRule::InstrLinalgMatrixStrideZeroForOptimalLayouts);

@@ -2898,7 +2898,7 @@ struct DxilInst_TextureLoad {
   void set_offset2(llvm::Value *val) { Instr->setOperand(8, val); }
 };
 
-/// This instruction reads texel data without any filtering or sampling
+/// This instruction writes texel data without any filtering or sampling
 struct DxilInst_TextureStore {
   llvm::Instruction *Instr;
   // Construction and identification

@@ -2280,7 +2280,7 @@ class db_dxil(object):
             "TextureStore",
             next_op_idx,
             "TextureStore",
-            "reads texel data without any filtering or sampling",
+            "writes texel data without any filtering or sampling",
             "hfwi",
             "",
             [

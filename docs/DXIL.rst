@@ -2181,7 +2181,7 @@ ID  Name                                                  Description
 64  SampleCmp                                             samples a texture and compares a single component against the specified comparison value
 65  SampleCmpLevelZero                                    samples a texture and compares a single component against the specified comparison value
 66  TextureLoad                                           reads texel data without any filtering or sampling
-67  TextureStore                                          reads texel data without any filtering or sampling
+67  TextureStore                                          writes texel data without any filtering or sampling
 68  BufferLoad                                            reads from a TypedBuffer
 69  BufferStore                                           writes to a RWTypedBuffer
 70  BufferUpdateCounter                                   atomically increments/decrements the hidden 32-bit counter stored with a Count or Append UAV

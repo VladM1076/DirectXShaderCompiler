@@ -897,7 +897,7 @@ enum class OpCode : unsigned {
   RawBufferVectorStore =
       304,           // writes to a RWByteAddressBuffer or RWStructuredBuffer
   TextureLoad = 66,  // reads texel data without any filtering or sampling
-  TextureStore = 67, // reads texel data without any filtering or sampling
+  TextureStore = 67, // writes texel data without any filtering or sampling
   TextureStoreSample = 225, // stores texel data at specified sample index
 
   // Sampler Feedback
@@ -1606,14 +1606,25 @@ const unsigned kMatVecMulMatrixTransposeIdx = 10;
 const unsigned kMatVecMulMatrixStrideIdx = 11;
 const unsigned kMatVecMulIsOutputUnsignedIdx = 12;
 
-// MatVecAdd
-const unsigned kMatVecMulAddBiasInterpretation = 14;
+// MatVecMulAdd
+const unsigned kMatVecMulAddBiasIdx = 12;
+const unsigned kMatVecMulAddBiasOffsetIdx = 13;
+const unsigned kMatVecMulAddBiasInterpretationIdx = 14;
 const unsigned kMatVecMulAddIsOutputUnsignedIdx = 15;
 
 // Outer Product Accumulate
-const unsigned kOuterProdAccMatrixInterpretation = 5;
-const unsigned kOuterProdAccMatrixLayout = 6;
-const unsigned kOuterProdAccMatrixStride = 7;
+const unsigned kOuterProdAccInputVector1Idx = 1;
+const unsigned kOuterProdAccInputVector2Idx = 2;
+const unsigned kOuterProdAccMatrixBufferIdx = 3;
+const unsigned kOuterProdAccMatrixOffsetIdx = 4;
+const unsigned kOuterProdAccMatrixInterpretationIdx = 5;
+const unsigned kOuterProdAccMatrixLayoutIdx = 6;
+const unsigned kOuterProdAccMatrixStrideIdx = 7;
+
+// Vector Accumulate
+const unsigned kVectorAccumulateInputVectorIdx = 1;
+const unsigned kVectorAccumulateOutputArrayIdx = 2;
+const unsigned kVectorAccumulateOutputOffsetIdx = 3;
 
 // TODO: add operand index for all the OpCodeClass.
 } // namespace OperandIndex
