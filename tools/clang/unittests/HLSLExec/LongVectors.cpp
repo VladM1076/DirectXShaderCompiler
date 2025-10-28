@@ -503,13 +503,41 @@ void configureLoadAndStoreShaderOp(const Operation &Operation,
     }
   };
 
+  // Compute structure byte stride for StructuredBuffer tests.
+  // For vector<TYPE, NUM>, structure size = NUM * sizeof(TYPE)
+  const UINT StructureByteStride = static_cast<UINT>(VectorSize * ElementSize);
+
+  // Detect if this ShaderOp uses StructuredBuffer (ends with "_SB") vs ByteAddressBuffer (ends with "_BAB")
+  const char *ShaderOpName = Operation.ShaderName;
+  size_t NameLen = strlen(ShaderOpName);
+  bool IsStructuredBuffer = (NameLen >= 3 && strcmp(ShaderOpName + NameLen - 3, "_SB") == 0);
+
   if (!ShaderOp->DescriptorHeaps.empty()) {
     DXASSERT_NOMSG(ShaderOp->DescriptorHeaps.size() == 1);
     for (auto &D : ShaderOp->DescriptorHeaps[0].Descriptors) {
-      if (_stricmp(D.Kind, "UAV") == 0)
-        D.UavDesc.Buffer.NumElements = ComputeNumElements(D.UavDesc.Format);
-      else if (_stricmp(D.Kind, "SRV") == 0)
-        D.SrvDesc.Buffer.NumElements = ComputeNumElements(D.SrvDesc.Format);
+      if (_stricmp(D.Kind, "UAV") == 0) {
+        if (IsStructuredBuffer) {
+          // StructuredBuffer configuration
+          D.UavDesc.Buffer.StructureByteStride = StructureByteStride;
+          D.UavDesc.Buffer.NumElements = 1; // One struct element
+          D.UavDesc.Format = DXGI_FORMAT_UNKNOWN;
+          D.UavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
+        } else {
+          // ByteAddressBuffer - use existing R32_TYPELESS logic
+          D.UavDesc.Buffer.NumElements = ComputeNumElements(D.UavDesc.Format);
+        }
+      } else if (_stricmp(D.Kind, "SRV") == 0) {
+        if (IsStructuredBuffer) {
+          // StructuredBuffer configuration
+          D.SrvDesc.Buffer.StructureByteStride = StructureByteStride;
+          D.SrvDesc.Buffer.NumElements = 1; // One struct element
+          D.SrvDesc.Format = DXGI_FORMAT_UNKNOWN;
+          D.SrvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
+        } else {
+          // ByteAddressBuffer - use existing R32_TYPELESS logic
+          D.SrvDesc.Buffer.NumElements = ComputeNumElements(D.SrvDesc.Format);
+        }
+      }
     }
   }
 

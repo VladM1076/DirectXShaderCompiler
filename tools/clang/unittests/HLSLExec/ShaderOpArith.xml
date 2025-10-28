@@ -3717,7 +3717,7 @@ void MSMain(uint GID : SV_GroupIndex,
     </Shader>
   </ShaderOp>
 
-  <ShaderOp Name="LongVectorOp_RootDescriptor_UAV" CS="CS">
+  <ShaderOp Name="LongVectorOp_RootDescriptor_UAV_BAB" CS="CS">
     <RootSignature>UAV(u0), UAV(u1)</RootSignature>
     <!-- Note: Width is set dynamically (via c++ test code) based on the input vector size and element type -->
     <Resource Name="InputVector1" Dimension="BUFFER" Init="ByName"
@@ -3760,7 +3760,50 @@ void MSMain(uint GID : SV_GroupIndex,
     </Shader>
   </ShaderOp>
 
-  <ShaderOp Name="LongVectorOp_RootDescriptor_SRV" CS="CS">
+  <ShaderOp Name="LongVectorOp_RootDescriptor_UAV_SB" CS="CS">
+    <RootSignature>UAV(u0), UAV(u1)</RootSignature>
+    <!-- Note: Width is set dynamically (via c++ test code) based on the input vector size and element type -->
+    <Resource Name="InputVector1" Dimension="BUFFER" Init="ByName"
+    ReadBack="true" Flags="ALLOW_UNORDERED_ACCESS"
+    TransitionTo="UNORDERED_ACCESS">
+    </Resource>
+    <Resource Name="OutputVector" Dimension="BUFFER" Width="0" Init="ByName"
+    ReadBack="true" Flags="ALLOW_UNORDERED_ACCESS"
+    TransitionTo="UNORDERED_ACCESS">
+    </Resource>
+
+    <RootValues>
+      <RootValue Index="0" ResName="InputVector1" />
+      <RootValue Index="1" ResName="OutputVector" />
+    </RootValues>
+
+    <Shader Name="CS" Target="cs_6_9" EntryPoint="main">
+      <![CDATA[
+        #if USE_STRUCTURED_BUFFER
+          struct SLongVec {
+            vector<TYPE, NUM> data;
+          };
+          RWStructuredBuffer<SLongVec> InputVector : register(u0);
+          RWStructuredBuffer<SLongVec> OutputVector: register(u1);
+        #else
+          RWByteAddressBuffer InputVector : register(u0);
+          RWByteAddressBuffer OutputVector : register(u1);
+        #endif
+
+        [numthreads(1,1,1)]
+        void main(uint GI : SV_GroupIndex) {
+          #if USE_STRUCTURED_BUFFER
+            OutputVector[0].data = InputVector[0].data;
+          #else
+            vector<TYPE, NUM> Input = InputVector.Load< vector<TYPE, NUM> >(0);
+            OutputVector.Store< vector<TYPE, NUM> >(0, Input);
+          #endif
+        };
+      ]]>
+    </Shader>
+  </ShaderOp>
+
+  <ShaderOp Name="LongVectorOp_RootDescriptor_SRV_BAB" CS="CS">
     <RootSignature>SRV(t0), UAV(u1)</RootSignature>
     <!-- Note: Width is set dynamically (via c++ test code) based on the input vector size and element type -->
     <Resource Name="InputVector1" Dimension="BUFFER" Init="ByName"/>
@@ -3800,7 +3843,47 @@ void MSMain(uint GID : SV_GroupIndex,
     </Shader>
   </ShaderOp>
 
-  <ShaderOp Name="LongVectorOp_DescriptorTable_UAV" CS="CS">
+  <ShaderOp Name="LongVectorOp_RootDescriptor_SRV_SB" CS="CS">
+    <RootSignature>SRV(t0), UAV(u1)</RootSignature>
+    <!-- Note: Width is set dynamically (via c++ test code) based on the input vector size and element type -->
+    <Resource Name="InputVector1" Dimension="BUFFER" Init="ByName"/>
+    <Resource Name="OutputVector" Dimension="BUFFER" Width="0" Init="ByName"
+    ReadBack="true" Flags="ALLOW_UNORDERED_ACCESS"
+    TransitionTo="UNORDERED_ACCESS">
+    </Resource>
+
+    <RootValues>
+      <RootValue Index="0" ResName="InputVector1" />
+      <RootValue Index="1" ResName="OutputVector" />
+    </RootValues>
+
+    <Shader Name="CS" Target="cs_6_9" EntryPoint="main">
+      <![CDATA[
+        #if USE_STRUCTURED_BUFFER
+          struct SLongVec {
+            vector<TYPE, NUM> data;
+          };
+          StructuredBuffer<SLongVec> InputVector : register(t0);
+          RWStructuredBuffer<SLongVec> OutputVector : register(u1);
+        #else
+          ByteAddressBuffer InputVector : register(t0);
+          RWByteAddressBuffer OutputVector : register(u1);
+        #endif
+
+        [numthreads(1,1,1)]
+        void main(uint GI : SV_GroupIndex) {
+          #if USE_STRUCTURED_BUFFER
+            OutputVector[0].data = InputVector[0].data;
+          #else
+            vector<TYPE, NUM> Input = InputVector.Load< vector<TYPE, NUM> >(0);
+            OutputVector.Store< vector<TYPE, NUM> >(0, Input);
+          #endif
+        };
+      ]]>
+    </Shader>
+  </ShaderOp>
+
+  <ShaderOp Name="LongVectorOp_DescriptorTable_UAV_BAB" CS="CS">
     <RootSignature>DescriptorTable(UAV(u0, numDescriptors=2))</RootSignature>
     <!-- Note: Width is set dynamically (via c++ test code) based on the input vector size and element type -->
     <Resource Name="InputVector1" Dimension="BUFFER" Width="0" Init="ByName"
@@ -3853,7 +3936,60 @@ void MSMain(uint GID : SV_GroupIndex,
     </Shader>
   </ShaderOp>
 
-  <ShaderOp Name="LongVectorOp_DescriptorTable_SRV" CS="CS">
+  <ShaderOp Name="LongVectorOp_DescriptorTable_UAV_SB" CS="CS">
+    <RootSignature>DescriptorTable(UAV(u0, numDescriptors=2))</RootSignature>
+    <!-- Note: Width is set dynamically (via c++ test code) based on the input vector size and element type -->
+    <Resource Name="InputVector1" Dimension="BUFFER" Width="0" Init="ByName"
+    ReadBack="true" Flags="ALLOW_UNORDERED_ACCESS"
+    TransitionTo="UNORDERED_ACCESS">
+    </Resource>
+    <Resource Name="OutputVector" Dimension="BUFFER" Width="0" Init="ByName"
+    ReadBack="true" Flags="ALLOW_UNORDERED_ACCESS"
+    TransitionTo="UNORDERED_ACCESS">
+    </Resource>
+
+    <!-- Note: NumElements and StructureByteStride are set dynamically (via c++ test code) based on the
+    input vector size and element type -->
+    <RootValues>
+      <RootValue HeapName="DescriptorTable" Index="0" />
+    </RootValues>
+    <DescriptorHeap Name="DescriptorTable" Type="CBV_SRV_UAV">
+      <Descriptor Name="InputVector1" Kind="UAV" ResName="InputVector1" NumElements="0" StructureByteStride="0"/>
+      <Descriptor Name="OutputVector" Kind="UAV" ResName="OutputVector"
+      NumElements="0" StructureByteStride="0"/>
+    </DescriptorHeap>
+
+    <Shader Name="CS" Target="cs_6_9" EntryPoint="main">
+      <![CDATA[
+
+        #if USE_STRUCTURED_BUFFER
+          struct SLongVec {
+            vector<TYPE, NUM> data;
+          };
+          RWStructuredBuffer<SLongVec> InputVector : register(u0);
+          RWStructuredBuffer<SLongVec> OutputVector: register(u1);
+        #else
+          RWByteAddressBuffer InputVector : register(u0);
+          RWByteAddressBuffer OutputVector : register(u1);
+        #endif
+
+
+        [numthreads(1,1,1)]
+        void main(uint GI : SV_GroupIndex) {
+
+          #if USE_STRUCTURED_BUFFER
+            OutputVector[0].data = InputVector[0].data;
+          #else
+            vector<TYPE, NUM> Input = InputVector.Load< vector<TYPE, NUM> >(0);
+            OutputVector.Store< vector<TYPE, NUM> >(0, Input);
+          #endif
+
+        };
+      ]]>
+    </Shader>
+  </ShaderOp>
+
+  <ShaderOp Name="LongVectorOp_DescriptorTable_SRV_BAB" CS="CS">
     <RootSignature>DescriptorTable(SRV(t0, numDescriptors=1), UAV(u0, numDescriptors=1))</RootSignature>
     <!-- Note: Width is set dynamically (via c++ test code) based on the input vector size and element type -->
     <Resource Name="InputVector1" Dimension="BUFFER" Width="0" Init="ByName"/>
@@ -3899,7 +4035,53 @@ void MSMain(uint GID : SV_GroupIndex,
     </Shader>
   </ShaderOp>
 
-  <ShaderOp Name="LongVectorOp_ResourceDescriptorHeap_SRV" CS="CS">
+  <ShaderOp Name="LongVectorOp_DescriptorTable_SRV_SB" CS="CS">
+    <RootSignature>DescriptorTable(SRV(t0, numDescriptors=1), UAV(u0, numDescriptors=1))</RootSignature>
+    <!-- Note: Width is set dynamically (via c++ test code) based on the input vector size and element type -->
+    <Resource Name="InputVector1" Dimension="BUFFER" Width="0" Init="ByName"/>
+    <Resource Name="OutputVector" Dimension="BUFFER" Width="0" Init="ByName"
+    ReadBack="true" Flags="ALLOW_UNORDERED_ACCESS"
+    TransitionTo="UNORDERED_ACCESS">
+    </Resource>
+
+    <!-- Note: NumElements and StructureByteStride are set dynamically (via c++ test code) based on the
+    input vector size and element type -->
+    <RootValues>
+      <RootValue HeapName="DescriptorTable" Index="0" />
+    </RootValues>
+    <DescriptorHeap Name="DescriptorTable" Type="CBV_SRV_UAV">
+      <Descriptor Name="InputVector1" Kind="SRV" ResName="InputVector1" NumElements="0" StructureByteStride="0"/>
+      <Descriptor Name="OutputVector" Kind="UAV" ResName="OutputVector"
+      NumElements="0" StructureByteStride="0"/>
+    </DescriptorHeap>
+
+    <Shader Name="CS" Target="cs_6_9" EntryPoint="main">
+      <![CDATA[
+        #if USE_STRUCTURED_BUFFER
+          struct SLongVec {
+            vector<TYPE, NUM> data;
+          };
+          StructuredBuffer<SLongVec> InputVector : register(t0);
+          RWStructuredBuffer<SLongVec> OutputVector: register(u0);
+        #else
+          ByteAddressBuffer InputVector : register(t0);
+          RWByteAddressBuffer OutputVector : register(u0);
+        #endif
+
+        [numthreads(1,1,1)]
+        void main(uint GI : SV_GroupIndex) {
+          #if USE_STRUCTURED_BUFFER
+            OutputVector[0].data = InputVector[0].data;
+          #else
+            vector<TYPE, NUM> Input = InputVector.Load< vector<TYPE, NUM> >(0);
+            OutputVector.Store< vector<TYPE, NUM> >(0, Input);
+          #endif
+        };
+      ]]>
+    </Shader>
+  </ShaderOp>
+
+  <ShaderOp Name="LongVectorOp_ResourceDescriptorHeap_SRV_BAB" CS="CS">
     <RootSignature>RootFlags(CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED)</RootSignature>
 
     <!-- Note: Width is set dynamically (via c++ test code) based on the input vector size and element type -->
@@ -3948,7 +4130,54 @@ void MSMain(uint GID : SV_GroupIndex,
     </Shader>
   </ShaderOp>
 
-  <ShaderOp Name="LongVectorOp_ResourceDescriptorHeap_UAV" CS="CS">
+  <ShaderOp Name="LongVectorOp_ResourceDescriptorHeap_SRV_SB" CS="CS">
+    <RootSignature>RootFlags(CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED)</RootSignature>
+
+    <!-- Note: Width is set dynamically (via c++ test code) based on the input vector size and element type -->
+    <Resource Name="InputVector1" Dimension="BUFFER" Width="0"
+    InitialResourceState="COPY_DEST" Init="ByName">
+    </Resource>
+    <Resource Name="OutputVector" Dimension="BUFFER" Width="0"
+    InitialResourceState="COPY_DEST" Init="ByName" ReadBack="true"
+    Flags="ALLOW_UNORDERED_ACCESS" TransitionTo="UNORDERED_ACCESS">
+    </Resource>
+
+    <!-- Note: NumElements and StructureByteStride are set dynamically (via c++ test code) based on the
+    input vector size and element type -->
+    <DescriptorHeap Name="ResourceDescriptorHeap" Type="CBV_SRV_UAV">
+      <Descriptor Name="InputVector1" Kind="SRV" NumElements="0" StructureByteStride="0"/>
+      <Descriptor Name="OutputVector" Kind="UAV" NumElements="0" StructureByteStride="0"/>
+    </DescriptorHeap>
+
+    <Shader Name="CS" Target="cs_6_9" EntryPoint="main">
+      <![CDATA[
+        #if USE_STRUCTURED_BUFFER
+          struct SLongVec {
+            vector<TYPE, NUM> data;
+          };
+        #endif
+
+        [numthreads(1,1,1)]
+        void main(uint GI : SV_GroupIndex) {
+
+          #if USE_STRUCTURED_BUFFER
+            StructuredBuffer<SLongVec> InputVector = ResourceDescriptorHeap[0];
+            RWStructuredBuffer<SLongVec> OutputVector = ResourceDescriptorHeap[1];
+            OutputVector[0].data = InputVector[0].data;
+          #else
+            ByteAddressBuffer InputVector = ResourceDescriptorHeap[0];
+            RWByteAddressBuffer OutputVector = ResourceDescriptorHeap[1];
+
+            vector<TYPE, NUM> Input = InputVector.Load< vector<TYPE, NUM> >(0);
+
+            OutputVector.Store< vector<TYPE, NUM> >(0, Input);
+          #endif
+        };
+      ]]>
+    </Shader>
+  </ShaderOp>
+
+  <ShaderOp Name="LongVectorOp_ResourceDescriptorHeap_UAV_BAB" CS="CS">
     <RootSignature>RootFlags(CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED)</RootSignature>
 
     <!-- Note: Width is set dynamically (via c++ test code) based on the input vector size and element type -->
@@ -3978,6 +4207,53 @@ void MSMain(uint GID : SV_GroupIndex,
           };
         #endif
         
+        [numthreads(1,1,1)]
+        void main(uint GI : SV_GroupIndex) {
+          #if USE_STRUCTURED_BUFFER
+            RWStructuredBuffer<SLongVec> InputVector = ResourceDescriptorHeap[0];
+            RWStructuredBuffer<SLongVec> OutputVector = ResourceDescriptorHeap[1];
+            OutputVector[0].data = InputVector[0].data;
+          #else
+            RWByteAddressBuffer InputVector = ResourceDescriptorHeap[0];
+            RWByteAddressBuffer OutputVector = ResourceDescriptorHeap[1];
+
+            vector<TYPE, NUM> Input = InputVector.Load< vector<TYPE, NUM> >(0);
+
+            OutputVector.Store< vector<TYPE, NUM> >(0, Input);
+          #endif
+        };
+      ]]>
+    </Shader>
+  </ShaderOp>
+
+  <ShaderOp Name="LongVectorOp_ResourceDescriptorHeap_UAV_SB" CS="CS">
+    <RootSignature>RootFlags(CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED)</RootSignature>
+
+    <!-- Note: Width is set dynamically (via c++ test code) based on the input vector size and element type -->
+    <Resource Name="InputVector1" Dimension="BUFFER" Width="0"
+    InitialResourceState="COPY_DEST" Init="ByName" ReadBack="true"
+    Flags="ALLOW_UNORDERED_ACCESS" TransitionTo="UNORDERED_ACCESS">
+    </Resource>
+    <Resource Name="OutputVector" Dimension="BUFFER" Width="0"
+    InitialResourceState="COPY_DEST" Init="ByName" ReadBack="true"
+    Flags="ALLOW_UNORDERED_ACCESS" TransitionTo="UNORDERED_ACCESS">
+    </Resource>
+
+    <!-- Note: NumElements and StructureByteStride are set dynamically (via c++ test code) based on the
+    input vector size and element type -->
+    <DescriptorHeap Name="ResourceDescriptorHeap" Type="CBV_SRV_UAV">
+      <Descriptor Name="InputVector1" Kind="UAV" NumElements="0" StructureByteStride="0"/>
+      <Descriptor Name="OutputVector" Kind="UAV" NumElements="0" StructureByteStride="0"/>
+    </DescriptorHeap>
+
+    <Shader Name="CS" Target="cs_6_9" EntryPoint="main">
+      <![CDATA[
+        #if USE_STRUCTURED_BUFFER
+          struct SLongVec {
+            vector<TYPE, NUM> data;
+          };
+        #endif
+
         [numthreads(1,1,1)]
         void main(uint GI : SV_GroupIndex) {
           #if USE_STRUCTURED_BUFFER
